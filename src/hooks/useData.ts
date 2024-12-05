@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import apiClent from "../services/api-clent";
-import { CanceledError } from "axios";
+import { AxiosRequestConfig, CanceledError } from "axios";
 
 interface FetchResponse<T> {
     count: number;
     results: T[];
 }
 
-const useData = <T>( endpoint : string) => {
+const useData = <T>( endpoint : string, requestConfig?: AxiosRequestConfig, dep?: any[]) => {
     const [data, setGenres] = useState<T[]>([]);
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false)
@@ -16,7 +16,7 @@ const useData = <T>( endpoint : string) => {
       const controller = new AbortController();
       setIsLoading(true)
       apiClent
-        .get<FetchResponse<T>>(endpoint, {signal: controller.signal})
+        .get<FetchResponse<T>>(endpoint, {signal: controller.signal, ...requestConfig})
         .then((res) => {
             setGenres(res.data.results)
             setIsLoading(false)
@@ -28,7 +28,7 @@ const useData = <T>( endpoint : string) => {
             setIsLoading(false)
         });
       return () => controller.abort();
-    }, []);
+    }, dep? [...dep]:[] );
 
     return {data, error, isLoading}
 }
